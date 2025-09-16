@@ -7,13 +7,16 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
+// 👇 Importa o trait do Spatie (permissões e papéis)
+use Spatie\Permission\Traits\HasRoles;
+
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, HasRoles; // 👈 Adiciona aqui o HasRoles
 
     /**
-     * The attributes that are mass assignable.
+     * Campos que podem ser preenchidos em massa (create/update).
      *
      * @var list<string>
      */
@@ -21,10 +24,12 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        // 👇 Importante: se o usuário for do tipo "federação", guardamos o federacao_id
+        'federacao_id',
     ];
 
     /**
-     * The attributes that should be hidden for serialization.
+     * Campos que devem ser escondidos na serialização (ex.: APIs, JSON).
      *
      * @var list<string>
      */
@@ -34,7 +39,7 @@ class User extends Authenticatable
     ];
 
     /**
-     * Get the attributes that should be cast.
+     * Campos que devem ser convertidos/cast automaticamente.
      *
      * @return array<string, string>
      */
@@ -44,5 +49,15 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    /**
+     * RELAÇÃO: se o usuário tiver papel de "federação",
+     * este campo guarda a federação à qual ele pertence.
+     * Assim conseguimos limitar permissões (ex.: aprovar transferências locais).
+     */
+    public function federacao()
+    {
+        return $this->belongsTo(\App\Models\Federacao::class);
     }
 }
