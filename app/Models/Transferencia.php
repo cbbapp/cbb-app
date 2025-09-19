@@ -26,13 +26,13 @@ class Transferencia extends Model
         'club_destino_id',
         'tipo',
         'status',
-        'rejection_reason', // 👈 novo campo
-        'approved_by',      // 👈 novo campo
-        'approved_at',      // 👈 novo campo
+        'rejection_reason',
+        'approved_by',
+        'approved_at',
     ];
 
     /**
-     * A transferência é de um atleta.
+     * Relacionamento: a transferência pertence a um atleta
      */
     public function atleta()
     {

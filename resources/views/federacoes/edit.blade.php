@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="utf-8">
-  <title>Cadastrar Federação</title>
+  <title>Editar Federação</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     body { font-family: Arial, sans-serif; margin:20px; }
@@ -13,7 +13,7 @@
   </style>
 </head>
 <body>
-  <h1>Cadastrar Federação</h1>
+  <h1>Editar Federação</h1>
 
   @if ($errors->any())
     <div style="color:red">
@@ -23,58 +23,60 @@
     </div>
   @endif
 
-  <form method="POST" action="{{ route('federation.store') }}">
+  <form method="POST" action="{{ route('federation.update', $federacao->id) }}">
     @csrf
+    @method('PUT')
 
     <div class="row">
       <label>Nome da Entidade</label>
-      <input type="text" name="nome" value="{{ old('nome') }}" required>
+      <input type="text" name="nome" value="{{ old('nome', $federacao->nome) }}" required>
     </div>
 
     <div class="row">
       <label>Sigla</label>
-      <input type="text" name="sigla" value="{{ old('sigla') }}" required>
+      <input type="text" name="sigla" value="{{ old('sigla', $federacao->sigla) }}" required>
     </div>
 
     <div class="row">
       <label>CNPJ</label>
-      <input type="text" name="cnpj" id="cnpj" maxlength="18" value="{{ old('cnpj') }}" required placeholder="00.000.000/0000-00" autocomplete="off" inputmode="numeric">
+      <input type="text" name="cnpj" id="cnpj" maxlength="18"
+             value="{{ old('cnpj', $federacao->cnpj_formatado ?? $federacao->cnpj) }}"
+             required placeholder="00.000.000/0000-00" autocomplete="off" inputmode="numeric">
       <div class="hint">Será salvo apenas com dígitos. Formatação automática no campo.</div>
     </div>
 
     <div class="row">
       <label>Presidente</label>
-      <input type="text" name="presidente" value="{{ old('presidente') }}" required>
+      <input type="text" name="presidente" value="{{ old('presidente', $federacao->presidente) }}" required>
     </div>
 
     <div class="row">
       <label>Site (opcional)</label>
-      <input type="text" name="site" value="{{ old('site') }}">
+      <input type="text" name="site" value="{{ old('site', $federacao->site) }}">
     </div>
 
     <div class="row">
       <label>E-mail (opcional)</label>
-      <input type="email" name="email" value="{{ old('email') }}">
+      <input type="email" name="email" value="{{ old('email', $federacao->email) }}">
     </div>
 
     <div class="row">
       <label>Telefone (opcional)</label>
-      <input type="text" name="telefone" value="{{ old('telefone') }}">
+      <input type="text" name="telefone" value="{{ old('telefone', $federacao->telefone) }}">
     </div>
 
     <div class="row">
       <button type="submit">Salvar</button>
-      <a href="{{ route('federation.index') }}">Cancelar</a>
+      <a href="{{ route('federation.show', $federacao->id) }}">Cancelar</a>
     </div>
   </form>
 
   <script>
-    // Máscara simples do CNPJ no input (##.###.###/####-##)
+    // Máscara simples do CNPJ (##.###.###/####-##)
     const cnpj = document.getElementById('cnpj');
     if (cnpj) {
       const mask = (val) => {
         let v = (val || '').replace(/\D+/g,'').slice(0,14);
-        // monta a máscara incrementalmente
         if (v.length >= 3 && v.length <= 5) v = v.replace(/^(\d{2})(\d{0,3})/, '$1.$2');
         if (v.length >= 6 && v.length <= 8) v = v.replace(/^(\d{2})(\d{3})(\d{0,3})/, '$1.$2.$3');
         if (v.length >= 9 && v.length <= 12) v = v.replace(/^(\d{2})(\d{3})(\d{3})(\d{0,4})/, '$1.$2.$3/$4');
@@ -88,7 +90,6 @@
         const delta = cnpj.value.length - before.length;
         cnpj.setSelectionRange(pos + delta, pos + delta);
       });
-      // aplica no load
       cnpj.value = mask(cnpj.value);
     }
   </script>

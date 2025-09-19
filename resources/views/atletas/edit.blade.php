@@ -1,18 +1,16 @@
-{{-- resources/views/atletas/create.blade.php --}}
 <!doctype html>
 <html>
 <head>
   <meta charset="utf-8">
-  <title>Cadastrar Atleta</title>
+  <title>Editar Atleta</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-
   <style>
     body { font-family: Arial, sans-serif; margin: 20px; }
     h1 { margin-bottom: 16px; }
-    .row { margin-top: 10px; }
-    label { display:block; font-weight: 600; margin-bottom: 4px; }
+    .row { margin-bottom: 12px; }
+    label { display:block; font-weight: bold; margin-bottom: 4px; }
     input[type="text"], input[type="date"] { width: 320px; max-width: 100%; padding: 6px; }
-    .hint { font-size: 12px; color:#555; }
+    .hint { font-size: 12px; color: #555; }
 
     /* Autocomplete */
     .ac-wrapper { position: relative; width: 420px; max-width: 100%; }
@@ -28,13 +26,11 @@
       display: inline-block; background: #eef2ff; color: #3730a3;
       padding: 4px 8px; border-radius: 9999px; font-size: 12px; margin-top: 4px;
     }
-
-    .actions { margin-top: 14px; }
-    .actions button, .actions a { margin-right: 8px; }
+    .actions { margin-top: 12px; }
   </style>
 </head>
 <body>
-  <h1>Cadastrar Atleta</h1>
+  <h1>Editar Atleta</h1>
 
   @if (session('ok'))
     <p style="color:green">{{ session('ok') }}</p>
@@ -48,16 +44,15 @@
     </div>
   @endif
 
-  <form id="form-atleta-create" method="POST" action="{{ route('athlete.store') }}">
+  <form id="form-atleta-edit" method="POST" action="{{ route('athlete.update', $atleta->id) }}">
     @csrf
+    @method('PUT')
 
-    {{-- Nome --}}
     <div class="row">
-      <label>Nome do atleta</label>
-      <input type="text" name="nome" value="{{ old('nome') }}" required>
+      <label>Nome</label>
+      <input type="text" name="nome" value="{{ old('nome', $atleta->nome) }}" required>
     </div>
 
-    {{-- CPF --}}
     <div class="row">
       <label>CPF</label>
       <input
@@ -66,63 +61,68 @@
         name="cpf"
         inputmode="numeric"
         maxlength="14" {{-- 000.000.000-00 --}}
-        value="{{ old('cpf') }}"
+        value="{{ old('cpf', $atleta->cpf) }}"
         required
       >
       <div class="hint">Digite os números; a máscara será aplicada automaticamente.</div>
     </div>
 
-    {{-- Data de nascimento (usada internamente; não é exibida na ficha) --}}
     <div class="row">
       <label>Data de Nascimento</label>
       <input
         type="date"
         name="data_nascimento"
-        value="{{ old('data_nascimento') }}"
+        value="{{ old('data_nascimento', optional($atleta->data_nascimento)->format('Y-m-d')) }}"
         required
       >
     </div>
 
-    {{-- ======================== CLUBE (AJAX) ======================== --}}
-    @if(auth()->user()->hasRole('clube') && $clubes->count() === 1)
-      {{-- Clube fixo para usuário "clube" --}}
-      @php $c = $clubes->first(); @endphp
-      <div class="row">
-        <label>Clube</label>
-        <div class="pill">
-          {{ $c->nome }} ({{ $c->federacao->sigla ?? $c->federacao->nome ?? '-' }})
-        </div>
-        <input type="hidden" name="clube_id" value="{{ $c->id }}">
+    <div class="row">
+      <label>Aptidão</label>
+      <select name="situacao">
+        <option value="apto" @selected(old('situacao', $atleta->situacao) === 'apto')>Apto</option>
+        <option value="irregular" @selected(old('situacao', $atleta->situacao) === 'irregular')>Irregular</option>
+      </select>
+    </div>
+
+    {{-- ======================== BUSCA DE CLUBE (AJAX) ======================== --}}
+    <div class="row">
+      <label>Clube</label>
+
+      {{-- Valor atual (visual) --}}
+      <div id="clubeAtual" class="pill">
+        Selecionado: {{ $atleta->clube->nome ?? '-' }}
+        @php
+          $sigla = $atleta->clube->federacao->sigla ?? ($atleta->clube->federacao->nome ?? null);
+        @endphp
+        @if($sigla)
+          ({{ $sigla }})
+        @endif
       </div>
-    @else
-      {{-- Busca de clube por nome (admin / federação / clube sem amarração única) --}}
-      <div class="row">
-        <label>Clube</label>
 
-        {{-- Hidden real enviado no POST --}}
-        <input type="hidden" id="clube_id" name="clube_id" value="{{ old('clube_id') }}">
+      {{-- Hidden real enviado no POST --}}
+      <input type="hidden" id="clube_id" name="clube_id" value="{{ old('clube_id', $atleta->clube_id) }}">
 
-        {{-- Campo de busca/autocomplete --}}
-        <div class="ac-wrapper">
-          <input
-            type="text"
-            id="clube_busca"
-            placeholder="Digite o nome do clube para buscar..."
-            autocomplete="off"
-            aria-autocomplete="list"
-            aria-expanded="false"
-            aria-controls="ac-list"
-            value=""
-          >
-          <div id="ac-list" class="ac-list" role="listbox"></div>
-        </div>
-
-        <div class="hint">
-          Comece a digitar para buscar. Clique em um resultado para selecionar o clube.
-        </div>
+      {{-- Campo de busca/autocomplete --}}
+      <div class="ac-wrapper" style="margin-top:6px;">
+        <input
+          type="text"
+          id="clube_busca"
+          placeholder="Digite o nome do clube para buscar..."
+          autocomplete="off"
+          aria-autocomplete="list"
+          aria-expanded="false"
+          aria-controls="ac-list"
+          value=""
+        >
+        <div id="ac-list" class="ac-list" role="listbox"></div>
       </div>
-    @endif
-    {{-- ====================== FIM CLUBE (AJAX) ====================== --}}
+
+      <div class="hint">
+        Comece a digitar para buscar. Clique em um resultado para selecionar o clube.
+      </div>
+    </div>
+    {{-- ====================== FIM BUSCA DE CLUBE (AJAX) ====================== --}}
 
     <div class="actions">
       <button type="submit">Salvar</button>
@@ -134,7 +134,6 @@
     <a href="{{ route('athlete.index') }}">← Voltar à lista</a>
   </p>
 
-  @if(!(auth()->user()->hasRole('clube') && $clubes->count() === 1))
   <script>
     // Config do usuário atual (para filtrar por federação quando NÃO for admin)
     const IS_ADMIN = {!! auth()->user()->hasRole('admin') ? 'true' : 'false' !!};
@@ -143,6 +142,7 @@
     const input = document.getElementById('clube_busca');
     const list  = document.getElementById('ac-list');
     const hiddenId = document.getElementById('clube_id');
+    const lblAtual = document.getElementById('clubeAtual');
 
     let debounceTimer = null;
 
@@ -171,6 +171,7 @@
         div.onclick = () => {
           hiddenId.value = it.id;
           input.value = `${it.nome}${fed}`;
+          lblAtual.textContent = `Selecionado: ${it.nome}${fed}`;
           hideList();
         };
         list.appendChild(div);
@@ -204,20 +205,17 @@
         debounceTimer = setTimeout(() => buscarClubes(input.value), 220);
       });
 
-      // Fecha a lista ao clicar fora
       document.addEventListener('click', (ev) => {
         if (!ev.target.closest('.ac-wrapper')) {
           hideList();
         }
       });
 
-      // Fecha a lista ao pressionar ESC
       input.addEventListener('keydown', (ev) => {
         if (ev.key === 'Escape') hideList();
       });
     }
   </script>
-  @endif
 
   {{-- Máscara de CPF + limpeza no submit --}}
   <script>
@@ -246,19 +244,19 @@
         const before = e.target.value;
         e.target.value = formatCPF(e.target.value);
 
-        // tentativa simples de manter o cursor em posição confortável
+        // manter cursor razoavelmente na posição correta
         const diff = e.target.value.length - before.length;
         e.target.setSelectionRange(start + (diff > 0 ? 1 : 0), start + (diff > 0 ? 1 : 0));
       });
 
-      // ao carregar com old('cpf') sem máscara, aplicamos máscara
+      // ao carregar com valor (sem máscara), aplicamos formato
       cpfInput.value = formatCPF(cpfInput.value);
     }
 
     // no submit, envia apenas dígitos para passar no size:11 do backend
-    const formCreate = document.getElementById('form-atleta-create');
-    if (formCreate) {
-      formCreate.addEventListener('submit', () => {
+    const formEdit = document.getElementById('form-atleta-edit');
+    if (formEdit) {
+      formEdit.addEventListener('submit', () => {
         if (cpfInput) cpfInput.value = onlyDigits(cpfInput.value);
       });
     }

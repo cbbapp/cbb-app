@@ -80,6 +80,17 @@
     </div>
     @endcanany
 
+    {{-- ===== ACESSO (ADMIN) ===== --}}
+    @role('admin')
+    <div class="card">
+      <h3>Acesso (Admin)</h3>
+      <ul>
+        <li><a href="{{ route('admin.access.users.index') }}">Gerenciar Usuários</a></li>
+        <li><a href="{{ route('admin.access.roles.index') }}">Papéis × Permissões</a></li>
+      </ul>
+    </div>
+    @endrole
+
   </div>
 
   <p style="margin-top:30px;">

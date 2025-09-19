@@ -4,6 +4,14 @@
   <meta charset="utf-8">
   <title>Federações - Listagem</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body { font-family: Arial, sans-serif; margin:20px; }
+    .filtros { margin-bottom: 12px; }
+    .filtros input[type="text"] { padding:6px; width:260px; max-width:100%; }
+    table { border-collapse: collapse; width: 100%; }
+    th, td { border: 1px solid #ccc; padding: 6px; text-align: left; }
+    th { background:#f2f2f2; }
+  </style>
 </head>
 <body>
   <h1>Federações</h1>
@@ -12,38 +20,48 @@
     <p style="color:green">{{ session('ok') }}</p>
   @endif
 
-  {{-- Apenas admin enxerga este bloco; a rota no web.php é "federation.create" --}}
+  <form method="GET" class="filtros">
+    <input type="text" name="q" value="{{ $q ?? '' }}" placeholder="Buscar por nome, sigla ou CNPJ">
+    <button type="submit">Buscar</button>
+    <a href="{{ route('federation.index') }}">Limpar</a>
+  </form>
+
   @role('admin')
     <p>
       <a href="{{ route('federation.create') }}">+ Cadastrar federação</a>
     </p>
   @endrole
 
-  @if ($itens->count() === 0)
+  @if ($federacoes->count() === 0)
     <p>Nenhuma federação encontrada.</p>
   @else
-    <table border="1" cellpadding="6" cellspacing="0">
+    <table>
       <thead>
         <tr>
-          <th>ID</th>
           <th>Sigla</th>
           <th>Nome</th>
-          <th>Ações</th>
+          <th style="width:260px;">Ações</th>
         </tr>
       </thead>
       <tbody>
-        @foreach ($itens as $f)
+        @foreach ($federacoes as $f)
           <tr>
-            <td>{{ $f->id }}</td>
             <td>{{ $f->sigla }}</td>
-            <td>{{ $f->nome }}</td>
             <td>
-              {{-- Exclusão somente admin; rota no web.php é "federation.destroy" --}}
-              <form method="POST" action="{{ route('federation.destroy', $f->id) }}" onsubmit="return confirm('Excluir esta federação?');" style="display:inline;">
-                @csrf
-                @method('DELETE')
-                <button type="submit">Excluir</button>
-              </form>
+              <a href="{{ route('federation.show', $f->id) }}">
+                {{ $f->nome }}
+              </a>
+            </td>
+            <td>
+              <a href="{{ route('federation.show', $f->id) }}">Abrir ficha</a>
+              @role('admin')
+                | <a href="{{ route('federation.edit', $f->id) }}">Editar</a>
+                | <form method="POST" action="{{ route('federation.destroy', $f->id) }}" onsubmit="return confirm('Excluir esta federação?');" style="display:inline;">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit">Excluir</button>
+                  </form>
+              @endrole
             </td>
           </tr>
         @endforeach
@@ -51,7 +69,7 @@
     </table>
 
     <div style="margin-top:12px;">
-      {{ $itens->links() }}
+      {{ $federacoes->links() }}
     </div>
   @endif
 

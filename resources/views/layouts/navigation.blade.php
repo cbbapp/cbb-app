@@ -15,6 +15,13 @@
                     <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                         {{ __('Dashboard') }}
                     </x-nav-link>
+
+                    {{-- ====== Acesso (Admin) - link visível apenas para admin ====== --}}
+                    @role('admin')
+                        <x-nav-link :href="route('admin.access.users.index')" :active="request()->routeIs('admin.access.*')">
+                            {{ __('Acesso (Admin)') }}
+                        </x-nav-link>
+                    @endrole
                 </div>
             </div>
 
@@ -34,6 +41,13 @@
                     </x-slot>
 
                     <x-slot name="content">
+                        {{-- Link rápido do painel de acesso dentro do dropdown (apenas admin) --}}
+                        @role('admin')
+                            <x-dropdown-link :href="route('admin.access.users.index')">
+                                {{ __('Acesso (Admin)') }}
+                            </x-dropdown-link>
+                        @endrole
+
                         <x-dropdown-link :href="route('profile.edit')">
                             {{ __('Profile') }}
                         </x-dropdown-link>
@@ -70,6 +84,13 @@
             <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                 {{ __('Dashboard') }}
             </x-responsive-nav-link>
+
+            {{-- ====== Acesso (Admin) no menu mobile ====== --}}
+            @role('admin')
+                <x-responsive-nav-link :href="route('admin.access.users.index')" :active="request()->routeIs('admin.access.*')">
+                    {{ __('Acesso (Admin)') }}
+                </x-responsive-nav-link>
+            @endrole
         </div>
 
         <!-- Responsive Settings Options -->
@@ -80,6 +101,13 @@
             </div>
 
             <div class="mt-3 space-y-1">
+                {{-- Repetir link também no dropdown mobile, se quiser --}}
+                @role('admin')
+                    <x-responsive-nav-link :href="route('admin.access.users.index')">
+                        {{ __('Acesso (Admin)') }}
+                    </x-responsive-nav-link>
+                @endrole
+
                 <x-responsive-nav-link :href="route('profile.edit')">
                     {{ __('Profile') }}
                 </x-responsive-nav-link>
